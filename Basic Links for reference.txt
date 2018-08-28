@@ -1,0 +1,91 @@
+#current issue
+#in which component do you send the payload ?
+#nodeJs
+#current exposed API -> https://tableau-nodejs.herokuapp.com/insert
+
+____________________________________________________________________________________________
+
+https://github.com/xpandit/tableau_write-back_extension
+https://github.com/tableau/extensions-api
+https://github.com/andre347/tableau_extension_writeback
+#all above 3 are downloaded @ "D:\Tableau POC\api\Git downloads "
+
+
+https://blogs.oracle.com/linux/how-to-install-nodejs-8-with-node-oracledb-and-connect-it-to-the-database
+https://oracle.github.io/node-oracledb/INSTALL.html
+https://github.com/oracle/node-oracledb
+https://xpandit.github.io/tableau_write-back_extension/
+
+
+web app url
+https://script.google.com/macros/s/AKfycbxi2794HSmj1SzVzyOb7T3mn7GTvIWcGqZgj9eJb1tSLvbxrEs/exec
+
+google spreadsheet
+https://docs.google.com/spreadsheets/d/1nyni0r9qevHIUSrP303_K5WHH6FjPGdIO2DI90T1Sg0/edit#gid=0
+
+Google script code
+#entire script pasted below in tools--> script editor and deployed as web app - give the web app url to endpoint
+
+// Script to Insert Data From Ajax POST into SpreadSheet
+
+function doPost(e){
+  var result = {};
+  try {
+    
+    // Get Input Data
+    var inData = JSON.parse(e.parameter.input);
+    // Check Active SpreadSheet
+    var doc = SpreadsheetApp.getActiveSpreadsheet();
+    // Get the Sheet
+    var sheet = doc.getSheetByName(inData.sheet);
+    if (sheet === null) {
+        sheet = doc.insertSheet();
+        sheet.setName(inData.sheet);
+    }
+    
+    var columns = [];
+    // Valid if there is data in the Sheet
+    if(sheet.getLastColumn() > 0){
+      var colArr = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues();
+      columns = colArr[0];
+    }else{
+      // Append Columns
+      columns = inData.columns;
+      sheet.appendRow(columns);
+    } 
+    
+    // Append New Data
+    for(var i = 0; i < inData.data.length; i++){
+      var row =[];
+      for(var j = 0; j < columns.length; j++){
+        var data = inData.data[i][columns[j]];
+        if(data === undefined){
+          data = null;
+        }
+        row.push(data);
+      }
+      sheet.appendRow(row);
+    }
+    
+    // Build Result
+    result = inData;
+    result.columns = columns;
+    result.row = columns.length;
+    
+  } catch (f) {
+    result.error = f.toString();
+  }
+  return ContentService     
+  .createTextOutput(JSON.stringify(result))
+  .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+function setup() {
+  var doc = SpreadsheetApp.getActiveSpreadsheet();
+}
+
+function doGet(e){
+  return ContentService     
+  .createTextOutput("Hello")
+  .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
